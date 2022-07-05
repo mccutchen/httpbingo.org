@@ -22,9 +22,16 @@ const (
 func main() {
 	logger := zerolog.New(os.Stderr)
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		logger.Warn().Msgf("error looking up hostname: %s", err)
+		hostname = "unknown"
+	}
+
 	h := httpbin.New(
 		httpbin.WithMaxBodySize(maxBodySize),
 		httpbin.WithMaxDuration(maxDuration),
+		httpbin.WithHostname(hostname),
 	)
 
 	var handler http.Handler
