@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -30,7 +29,6 @@ func main() {
 
 	var handler http.Handler
 	handler = h.Handler()
-	handler = trafficController(handler)
 	handler = hlog.AccessHandler(requestLogger)(handler)
 	handler = hlog.NewHandler(logger)(handler)
 
@@ -43,20 +41,6 @@ func main() {
 	if err := listenAndServeGracefully(srv, maxDuration); err != nil {
 		logger.Fatal().Msgf("error starting server: %s", err)
 	}
-}
-
-func trafficController(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Special case requests from Cloudflare-Traffic-Manager, which is
-		// hammering httpbingo.org for unknown reasons. More context in this
-		// community support request:
-		// https://community.cloudflare.com/t/unexpected-excessive-requests-from-cloudflare-traffic-manager-to-non-cloudflare-domain/374760
-		if strings.Contains(r.Header.Get("User-Agent"), "Cloudflare-Traffic-Manager") {
-			http.Error(w, "Fuck off CloudFlare", http.StatusTooManyRequests)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }
 
 func requestLogger(r *http.Request, status int, size int, duration time.Duration) {
