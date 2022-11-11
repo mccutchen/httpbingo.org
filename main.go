@@ -32,6 +32,10 @@ func main() {
 		httpbin.WithMaxBodySize(maxBodySize),
 		httpbin.WithMaxDuration(maxDuration),
 		httpbin.WithHostname(hostname),
+		httpbin.WithAllowedRedirectDomains([]string{
+			"httpbingo.org",
+			"example.org",
+		}),
 	)
 
 	var handler http.Handler
