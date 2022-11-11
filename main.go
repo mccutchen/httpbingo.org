@@ -46,6 +46,10 @@ func main() {
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%s", os.Getenv("PORT")),
 		Handler: handler,
+
+		ReadTimeout:       2 * time.Second,
+		ReadHeaderTimeout: 1 * time.Second,
+		MaxHeaderBytes:    1024 * 4, // 4kb
 	}
 
 	logger.Info().Msgf("listening on %s", srv.Addr)
