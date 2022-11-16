@@ -19,6 +19,13 @@ const (
 	maxDuration = 10 * time.Second
 )
 
+var allowedRedirectDomains = []string{
+	"example.com",
+	"example.net",
+	"example.org",
+	"httpbingo.org",
+}
+
 func main() {
 	logger := zerolog.New(os.Stderr)
 
@@ -32,10 +39,7 @@ func main() {
 		httpbin.WithMaxBodySize(maxBodySize),
 		httpbin.WithMaxDuration(maxDuration),
 		httpbin.WithHostname(hostname),
-		httpbin.WithAllowedRedirectDomains([]string{
-			"httpbingo.org",
-			"example.org",
-		}),
+		httpbin.WithAllowedRedirectDomains(allowedRedirectDomains),
 	)
 
 	var handler http.Handler
