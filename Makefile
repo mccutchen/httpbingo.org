@@ -9,7 +9,7 @@ build: $(DIST_PATH)/httpbingo
 
 $(DIST_PATH)/httpbingo: main.go go.mod go.sum
 	mkdir -p $(DIST_PATH)
-	CGO_ENABLED=0 go build -ldflags="-s -w" -o $(DIST_PATH)/httpbingo
+	CGO_ENABLED=0 go build -buildvcs=false -ldflags="-s -w" -o $(DIST_PATH)/httpbingo
 
 clean:
 	rm -rf $(DIST_PATH)
