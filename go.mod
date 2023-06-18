@@ -1,9 +1,9 @@
 module github.com/mccutchen/httpbing.org
 
-go 1.19
+go 1.20
 
 require (
-	github.com/mccutchen/go-httpbin/v2 v2.8.0
+	github.com/mccutchen/go-httpbin/v2 v2.9.0
 	github.com/rs/zerolog v1.29.1
 )
 
