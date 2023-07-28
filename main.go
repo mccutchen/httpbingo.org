@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -26,6 +27,11 @@ var allowedRedirectDomains = []string{
 	"httpbingo.org",
 }
 
+// Exclude headers set by the fly.io platform on which we're deployed
+var excludedHeaders = []string{
+	"fly-*",
+}
+
 func main() {
 	logger := zerolog.New(os.Stderr)
 
@@ -40,6 +46,7 @@ func main() {
 		httpbin.WithMaxDuration(maxDuration),
 		httpbin.WithHostname(hostname),
 		httpbin.WithAllowedRedirectDomains(allowedRedirectDomains),
+		httpbin.WithExcludeHeaders(strings.Join(excludedHeaders, ",")),
 	)
 
 	var handler http.Handler
