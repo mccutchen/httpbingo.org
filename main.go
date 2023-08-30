@@ -51,6 +51,7 @@ func main() {
 
 	var handler http.Handler
 	handler = h.Handler()
+	handler = spamFilter(handler)
 	handler = hlog.AccessHandler(requestLogger)(handler)
 	handler = hlog.NewHandler(logger)(handler)
 
@@ -67,6 +68,30 @@ func main() {
 	if err := listenAndServeGracefully(srv, maxDuration); err != nil {
 		logger.Fatal().Msgf("error starting server: %s", err)
 	}
+}
+
+// spamFilter is where we attempt to discourage abusive behavior. The actual
+// filtering is likely to evolve over time, based on observed behavior and
+// traffic patterns.
+func spamFilter(next http.Handler) http.Handler {
+	isSpam := func(r *http.Request) bool {
+		switch {
+		// https://github.com/mccutchen/httpbingo.org/issues/1
+		case r.Method == http.MethodGet && r.URL.Path == "/stream-bytes/500000" && r.URL.Query().Get("nnn") != "":
+			return true
+		default:
+			return false
+		}
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if isSpam(r) {
+			time.Sleep(5 * time.Second)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func requestLogger(r *http.Request, status int, size int, duration time.Duration) {
