@@ -89,7 +89,7 @@ func spamFilter(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if isSpam(r) {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			w.WriteHeader(http.StatusPaymentRequired)
 			return
 		}
 		next.ServeHTTP(w, r)
