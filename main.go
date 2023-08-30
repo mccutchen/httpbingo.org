@@ -86,7 +86,6 @@ func spamFilter(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if isSpam(r) {
-			time.Sleep(5 * time.Second)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
