@@ -76,8 +76,11 @@ func main() {
 func spamFilter(next http.Handler) http.Handler {
 	isSpam := func(r *http.Request) bool {
 		switch {
-		// https://github.com/mccutchen/httpbingo.org/issues/1
 		case r.Method == http.MethodGet && r.URL.Path == "/stream-bytes/500000" && r.URL.Query().Get("nnn") != "":
+			// https://github.com/mccutchen/httpbingo.org/issues/1
+			return true
+		case r.Header.Get("User-Agent") == "Envoy/HC":
+			// https://github.com/mccutchen/httpbingo.org/issues/3
 			return true
 		default:
 			return false
