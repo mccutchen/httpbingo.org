@@ -7,8 +7,8 @@ github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27k
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
 github.com/mattn/go-isatty v0.0.19 h1:JITubQf0MOLdlGRuRq+jtsDlekdYPia9ZFsB8h/APPA=
 github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/mccutchen/go-httpbin/v2 v2.13.0 h1:oSfz5Sdrqmm2KIs3kw2TYgxkHbVYB1h12pbEHA1jqv8=
-github.com/mccutchen/go-httpbin/v2 v2.13.0/go.mod h1:f4DUXYlU6yH0V81O4lJIwqpmYdTXXmYwzxMnYEimFPk=
+github.com/mccutchen/go-httpbin/v2 v2.13.1 h1:mDTz2RTD3tugs1BKZM7o6YJsXODYWNvjKZko30B/aWk=
+github.com/mccutchen/go-httpbin/v2 v2.13.1/go.mod h1:f4DUXYlU6yH0V81O4lJIwqpmYdTXXmYwzxMnYEimFPk=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/rs/xid v1.4.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
 github.com/rs/xid v1.5.0 h1:mKX4bl4iPYJtEIxp6CYiUuLQ/8DYMoz0PUdtGgMFRVc=

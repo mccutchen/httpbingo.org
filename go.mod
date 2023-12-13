@@ -3,7 +3,7 @@ module github.com/mccutchen/httpbing.org
 go 1.20
 
 require (
-	github.com/mccutchen/go-httpbin/v2 v2.13.0
+	github.com/mccutchen/go-httpbin/v2 v2.13.1
 	github.com/rs/zerolog v1.29.1
 )
 
