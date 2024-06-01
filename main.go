@@ -75,12 +75,16 @@ func main() {
 // traffic patterns.
 func spamFilter(next http.Handler) http.Handler {
 	isSpam := func(r *http.Request) bool {
+		ua := r.Header.Get("User-Agent")
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/stream-bytes/500000" && r.URL.Query().Get("nnn") != "":
 			// https://github.com/mccutchen/httpbingo.org/issues/1
 			return true
-		case r.Header.Get("User-Agent") == "Envoy/HC":
+		case ua == "Envoy/HC":
 			// https://github.com/mccutchen/httpbingo.org/issues/3
+			return true
+		case ua == "Apache-HttpClient/4.5.14 (Java/21.0.2)" && r.Method == http.MethodGet && r.URL.Path == "/anything":
+			// https://github.com/mccutchen/httpbingo.org/issues/4
 			return true
 		default:
 			return false
