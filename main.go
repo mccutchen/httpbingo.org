@@ -86,6 +86,13 @@ func spamFilter(next http.Handler) http.Handler {
 		case ua == "Apache-HttpClient/4.5.14 (Java/21.0.2)" && r.Method == http.MethodGet && r.URL.Path == "/anything":
 			// https://github.com/mccutchen/httpbingo.org/issues/4
 			return true
+		case ua == "":
+			// https://github.com/mccutchen/httpbingo.org/issues/5
+			//
+			// this is more aggressive than strictly necessary for that particular
+			// traffic pattern, but it seems reasonable to me to reject all traffic
+			// that doesn't include at least *some* User-Agent identifier
+			return true
 		default:
 			return false
 		}
