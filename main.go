@@ -13,6 +13,8 @@ import (
 	"github.com/mccutchen/go-httpbin/v2/httpbin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 const (
@@ -54,6 +56,13 @@ func main() {
 	handler = spamFilter(handler)
 	handler = hlog.AccessHandler(requestLogger)(handler)
 	handler = hlog.NewHandler(logger)(handler)
+
+	// fly.io downgrades HTTP/2 connections to HTTP/1.1 by default, but will
+	// use h2c if explicitly enabled. This should hopefully allow HTTP trailers
+	// to work w/ HTTP/2 requests. See discussion[1] for a bit more context.
+	//
+	// [1]: https://community.fly.io/t/support-for-http-trailers/21915
+	handler = h2c.NewHandler(handler, &http2.Server{})
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%s", os.Getenv("PORT")),
