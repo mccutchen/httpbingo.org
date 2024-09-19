@@ -32,6 +32,8 @@ type = "connections"
 hard_limit = 50
 soft_limit = 40
 
-# See https://community.fly.io/t/support-for-http-trailers/21915
+# Enable HTTP/2 support via h2c protocol:
+# https://github.com/mccutchen/httpbingo.org/pull/6
+# https://community.fly.io/t/support-for-http-trailers/21915
 [services.ports.http_options]
 h2_backend = true
