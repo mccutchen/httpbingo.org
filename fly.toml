@@ -4,34 +4,34 @@ kill_signal = "SIGINT"
 kill_timeout = "5s"
 
 [deploy]
-  strategy = "rolling"
+strategy = "rolling"
 
 [env]
-  PORT = "8080"
+PORT = "8080"
 
 [[services]]
-  protocol = "tcp"
-  internal_port = 8080
+protocol = "tcp"
+internal_port = 8080
 
-  [[services.ports]]
-    port = 80
-    handlers = ["http"]
+[[services.ports]]
+port = 80
+handlers = ["http"]
 
-  [[services.ports]]
-    port = 443
-    handlers = ["tls", "http"]
+[[services.ports]]
+port = 443
+handlers = ["tls", "http"]
 
-  [services.concurrency]
-    type = "connections"
-    hard_limit = 50
-    soft_limit = 40
+[[services.tcp_checks]]
+interval = "10s"
+timeout = "2s"
+grace_period = "1s"
+restart_limit = 0
 
-  [[services.tcp_checks]]
-    interval = "10s"
-    timeout = "2s"
-    grace_period = "1s"
-    restart_limit = 0
+[services.concurrency]
+type = "connections"
+hard_limit = 50
+soft_limit = 40
 
-  # See https://community.fly.io/t/support-for-http-trailers/21915
-  [services.ports.http_options]
-    h2_backend = true
+# See https://community.fly.io/t/support-for-http-trailers/21915
+[services.ports.http_options]
+h2_backend = true
