@@ -89,9 +89,20 @@ func spamFilter(next http.Handler) http.Handler {
 		case ua == "":
 			// https://github.com/mccutchen/httpbingo.org/issues/5
 			//
-			// this is more aggressive than strictly necessary for that particular
-			// traffic pattern, but it seems reasonable to me to reject all traffic
-			// that doesn't include at least *some* User-Agent identifier
+			// this is more aggressive than strictly necessary for the
+			// particular traffic pattern in that issue, but it seems
+			// reasonable to me to reject all traffic that doesn't include at
+			// least *some* User-Agent identifier.
+			//
+			// [... 6 months later ...]
+			//
+			// https://github.com/mccutchen/httpbingo.org/issues/8
+			//
+			// Turns out some websocket clients don't send a User-Agent
+			// header, and we'd like to allow them to connect.
+			if r.URL.Path == "/websocket/echo" {
+				return false
+			}
 			return true
 		default:
 			return false
