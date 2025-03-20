@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.0
 
 require (
-	github.com/mccutchen/go-httpbin/v2 v2.17.1
+	github.com/mccutchen/go-httpbin/v2 v2.18.0
 	github.com/rs/zerolog v1.33.0
 )
 
