@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -euo pipefail
+
+function get_version() {
+    go list -m github.com/mccutchen/go-httpbin/v2 | awk '{print $NF}'
+}
+
+function log() {
+    echo "$*" 1>&2
+}
+
+current_version="$(get_version)"
+log "current version: $current_version"
+
+log "updating deps ..."
+go get -u github.com/mccutchen/go-httpbin/v2
+go get -u ./...
+go mod tidy -v
+
+updated_version="$(get_version)"
+log "updated version: $updated_version"
+
+if [ "$current_version" != "$updated_version" ]; then
+    log "found new version, committing changes"
+    git commit go.mod go.sum -m"Bump to $updated_version"
+else
+    log "no new version found, exiting"
+fi

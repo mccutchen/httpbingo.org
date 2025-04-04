@@ -23,6 +23,10 @@ watch: $(TOOL_REFLEX)
 	reflex -s -r '\.(go|html)$$' make run
 .PHONY: watch
 
+bump-version:
+	./bump-version
+.PHONY: bump-version
+
 deploy:
 	flyctl deploy
 .PHONY: deploy
