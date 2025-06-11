@@ -10,11 +10,17 @@ function log() {
     echo "$*" 1>&2
 }
 
+requested_version="${1:-}"
+if [ "$requested_version" == "" ]; then
+    requested_version="latest"
+fi
+
 current_version="$(get_version)"
-log "current version: $current_version"
+log "current version:   $current_version"
+log "requested version: $requested_version"
 
 log "updating deps ..."
-go get -u github.com/mccutchen/go-httpbin/v2
+go get -u github.com/mccutchen/go-httpbin/v2@"$requested_version"
 go get -u ./...
 go mod tidy -v
 

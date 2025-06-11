@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.3
-FROM golang:1.23
+FROM golang:1.24
 WORKDIR /src
 COPY . .
 RUN --mount=type=cache,id=gobuild,target=/root/.cache/go-build \
