@@ -22,7 +22,7 @@ kill_timeout = "5s"
     handlers = ["tls", "http"]
 
   [services.concurrency]
-    type = "requests"
+    type = "requests" # https://www.fly.io/docs/apps/concurrency/#connections-or-requests
     soft_limit = 100
     hard_limit = 150
 
