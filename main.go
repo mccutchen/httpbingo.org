@@ -86,7 +86,13 @@ func spamFilter(next http.Handler) http.Handler {
 		case ua == "Apache-HttpClient/4.5.14 (Java/21.0.2)" && r.Method == http.MethodGet && r.URL.Path == "/anything":
 			// https://github.com/mccutchen/httpbingo.org/issues/4
 			return true
-		case ua == "":
+		case ua == "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36":
+			// https://github.com/mccutchen/httpbingo.org/issues/11
+			return true
+		case strings.HasPrefix(ua, "cert-manager-challenges/"):
+			// https://github.com/mccutchen/httpbingo.org/issues/12
+			return true
+		case ua == "" && r.URL.Path != "/websocket/echo":
 			// https://github.com/mccutchen/httpbingo.org/issues/5
 			//
 			// this is more aggressive than strictly necessary for the
@@ -100,9 +106,6 @@ func spamFilter(next http.Handler) http.Handler {
 			//
 			// Turns out some websocket clients don't send a User-Agent
 			// header, and we'd like to allow them to connect.
-			if r.URL.Path == "/websocket/echo" {
-				return false
-			}
 			return true
 		default:
 			return false
