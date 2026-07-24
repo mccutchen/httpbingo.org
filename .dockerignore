@@ -1,3 +1,4 @@
 dist
 Dockerfile
 fly.toml
+.otelc-build

@@ -9,6 +9,30 @@ kill_timeout = "5s"
 [env]
   PORT = "8080"
 
+  # opentelemetry configuration
+  # https://uptrace.dev/get/opentelemetry-go/otlp#common-environment-variables
+  # https://opentelemetry.io/docs/languages/sdk-configuration/
+  OTEL_SERVICE_NAME = "httpbingo"
+  OTEL_EXPORTER_OTLP_PROTOCOL = "grpc"
+  OTEL_EXPORTER_OTLP_ENDPOINT = "https://api.uptrace.dev:4317"
+
+  # set as fly secret
+  # OTEL_EXPORTER_OTLP_HEADERS = "uptrace-dsn = <secret>"
+  #
+  # set at deploy time on CLI
+  # OTEL_RESOURCE_ATTRIBUTES = "service.version=$(git rev-parse ...)"
+
+  # recommended performance tweaks
+  OTEL_EXPORTER_OTLP_COMPRESSION = "gzip"
+  OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION = "BASE2_EXPONENTIAL_BUCKET_HISTOGRAM"
+  OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE = "DELTA"
+
+  # tune bulk exporter
+  OTEL_BSP_EXPORT_TIMEOUT         = 10000 # Max export timeout (ms)
+  OTEL_BSP_MAX_EXPORT_BATCH_SIZE  = 10000 # Avoid >32MB payloads
+  OTEL_BSP_MAX_QUEUE_SIZE         = 30000 # Adjust for available memory
+  OTEL_BSP_MAX_CONCURRENT_EXPORTS = 2     # Parallel exports
+
 [[services]]
   protocol = "tcp"
   internal_port = 8080
