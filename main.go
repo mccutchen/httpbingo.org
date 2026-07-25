@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,9 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/felixge/httpsnoop"
 	"github.com/mccutchen/go-httpbin/v2/httpbin"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/hlog"
 )
 
 const (
@@ -33,11 +33,11 @@ var excludedHeaders = []string{
 }
 
 func main() {
-	logger := zerolog.New(os.Stderr)
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		logger.Warn().Msgf("error looking up hostname: %s", err)
+		logger.Warn("error looking up hostname, using placeholder value", "err", err)
 		hostname = "unknown"
 	}
 
@@ -52,8 +52,7 @@ func main() {
 	var handler http.Handler
 	handler = h.Handler()
 	handler = spamFilter(handler)
-	handler = hlog.AccessHandler(requestLogger)(handler)
-	handler = hlog.NewHandler(logger)(handler)
+	handler = accessLogger(logger, handler)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%s", os.Getenv("PORT")),
@@ -64,9 +63,10 @@ func main() {
 		MaxHeaderBytes:    1024 * 4, // 4kb
 	}
 
-	logger.Info().Msgf("listening on %s", srv.Addr)
+	logger.Info("listening on", slog.String("addr", srv.Addr))
 	if err := listenAndServeGracefully(srv, maxDuration); err != nil {
-		logger.Fatal().Msgf("error starting server: %s", err)
+		logger.Error("error starting server", "err", err)
+		os.Exit(1)
 	}
 }
 
@@ -121,17 +121,27 @@ func spamFilter(next http.Handler) http.Handler {
 	})
 }
 
-func requestLogger(r *http.Request, status int, size int, duration time.Duration) {
-	hlog.FromRequest(r).
-		Info().
-		Int("status", status).
-		Str("method", r.Method).
-		Str("uri", r.RequestURI).
-		Int("size_bytes", size).
-		Str("user_agent", r.Header.Get("User-Agent")).
-		Str("client_ip", r.Header.Get("Fly-Client-IP")).
-		Float64("duration_ms", duration.Seconds()*1e3). // https://github.com/golang/go/issues/5491#issuecomment-66079585
-		Send()
+func accessLogger(logger *slog.Logger, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m := httpsnoop.CaptureMetrics(next, w, r)
+		durationMS := m.Duration.Seconds() * 1000
+		lvl := slog.LevelInfo
+		if m.Code >= 500 {
+			lvl = slog.LevelError
+		} else if m.Code >= 400 {
+			lvl = slog.LevelWarn
+		}
+		logger.LogAttrs(r.Context(), lvl, fmt.Sprintf("%d %s %s %0.0fms", m.Code, r.Method, r.RequestURI, durationMS),
+			slog.Int("http.status_code", m.Code),
+			slog.String("http.method", r.Method),
+			slog.String("http.uri", r.RequestURI),
+			slog.Int64("http.response_size_bytes", m.Written),
+			slog.Int64("http.request_size_bytes", r.ContentLength),
+			slog.String("http.user_agent", r.Header.Get("User-Agent")),
+			slog.String("network.client_ip", r.Header.Get("Fly-Client-IP")),
+			slog.Float64("duration_ms", durationMS),
+		)
+	})
 }
 
 func listenAndServeGracefully(srv *http.Server, shutdownTimeout time.Duration) error {
