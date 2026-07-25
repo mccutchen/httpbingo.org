@@ -5,11 +5,18 @@ PORT       ?= 8080
 TOOL_BIN_DIR ?= $(shell go env GOPATH)/bin
 TOOL_REFLEX  := $(TOOL_BIN_DIR)/reflex
 
+# Build with compile-time otel instrumentation:
+# https://opentelemetry.io/docs/zero-code/go/compile-time/
+GO_BUILD ?= go run go.opentelemetry.io/otelc/tool/cmd/otelc@v1.0.1 go build
+
+# Capture version at deploy time as ${branch}@${commit}
+DEPLOY_VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)@$(shell git describe --always --dirty)
+
 build: $(DIST_PATH)/httpbingo
 
 $(DIST_PATH)/httpbingo: main.go go.mod go.sum
 	mkdir -p $(DIST_PATH)
-	CGO_ENABLED=0 go build -buildvcs=false -ldflags="-s -w" -o $(DIST_PATH)/httpbingo
+	CGO_ENABLED=0 $(GO_BUILD) -buildvcs=false -ldflags="-s -w" -o $(DIST_PATH)/httpbingo
 
 clean:
 	rm -rf $(DIST_PATH)
@@ -28,7 +35,7 @@ bump-version:
 .PHONY: bump-version
 
 deploy:
-	flyctl deploy
+	fly deploy --env OTEL_RESOURCE_ATTRIBUTES="service.version=$(DEPLOY_VERSION)"
 .PHONY: deploy
 
 image:
