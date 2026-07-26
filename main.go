@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,8 +12,6 @@ import (
 	"time"
 
 	"github.com/mccutchen/go-httpbin/v2/httpbin"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/hlog"
 )
 
 const (
@@ -33,11 +32,11 @@ var excludedHeaders = []string{
 }
 
 func main() {
-	logger := zerolog.New(os.Stderr)
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		logger.Warn().Msgf("error looking up hostname: %s", err)
+		logger.Warn("error looking up hostname, using placeholder value", "err", err)
 		hostname = "unknown"
 	}
 
@@ -47,13 +46,30 @@ func main() {
 		httpbin.WithHostname(hostname),
 		httpbin.WithAllowedRedirectDomains(allowedRedirectDomains),
 		httpbin.WithExcludeHeaders(strings.Join(excludedHeaders, ",")),
+		httpbin.WithObserver(func(ctx context.Context, result httpbin.Result) {
+			durationMS := result.Duration.Seconds() * 1000
+			lvl := slog.LevelInfo
+			if result.Status >= 500 {
+				lvl = slog.LevelError
+			} else if result.Status >= 400 {
+				lvl = slog.LevelWarn
+			}
+			logger.LogAttrs(ctx, lvl, fmt.Sprintf("%d %s %s %0.0fms", result.Status, result.Method, result.URI, durationMS),
+				slog.Int("http.status_code", result.Status),
+				slog.String("http.method", result.Method),
+				slog.String("http.uri", result.URI),
+				slog.Int64("http.response_size_bytes", result.Size),
+				slog.Int64("http.request_size_bytes", result.RequestSize),
+				slog.String("http.user_agent", result.UserAgent),
+				slog.String("network.client_ip", result.ClientIP),
+				slog.Float64("duration_ms", durationMS),
+			)
+		}),
 	)
 
 	var handler http.Handler
 	handler = h.Handler()
 	handler = spamFilter(handler)
-	handler = hlog.AccessHandler(requestLogger)(handler)
-	handler = hlog.NewHandler(logger)(handler)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%s", os.Getenv("PORT")),
@@ -64,9 +80,10 @@ func main() {
 		MaxHeaderBytes:    1024 * 4, // 4kb
 	}
 
-	logger.Info().Msgf("listening on %s", srv.Addr)
+	logger.Info("listening on", slog.String("addr", srv.Addr))
 	if err := listenAndServeGracefully(srv, maxDuration); err != nil {
-		logger.Fatal().Msgf("error starting server: %s", err)
+		logger.Error("error starting server", "err", err)
+		os.Exit(1)
 	}
 }
 
@@ -119,19 +136,6 @@ func spamFilter(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
-}
-
-func requestLogger(r *http.Request, status int, size int, duration time.Duration) {
-	hlog.FromRequest(r).
-		Info().
-		Int("status", status).
-		Str("method", r.Method).
-		Str("uri", r.RequestURI).
-		Int("size_bytes", size).
-		Str("user_agent", r.Header.Get("User-Agent")).
-		Str("client_ip", r.Header.Get("Fly-Client-IP")).
-		Float64("duration_ms", duration.Seconds()*1e3). // https://github.com/golang/go/issues/5491#issuecomment-66079585
-		Send()
 }
 
 func listenAndServeGracefully(srv *http.Server, shutdownTimeout time.Duration) error {
