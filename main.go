@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/felixge/httpsnoop"
 	"github.com/mccutchen/go-httpbin/v2/httpbin"
 )
 
@@ -47,12 +46,30 @@ func main() {
 		httpbin.WithHostname(hostname),
 		httpbin.WithAllowedRedirectDomains(allowedRedirectDomains),
 		httpbin.WithExcludeHeaders(strings.Join(excludedHeaders, ",")),
+		httpbin.WithObserver(func(ctx context.Context, result httpbin.Result) {
+			durationMS := result.Duration.Seconds() * 1000
+			lvl := slog.LevelInfo
+			if result.Status >= 500 {
+				lvl = slog.LevelError
+			} else if result.Status >= 400 {
+				lvl = slog.LevelWarn
+			}
+			logger.LogAttrs(ctx, lvl, fmt.Sprintf("%d %s %s %0.0fms", result.Status, result.Method, result.URI, durationMS),
+				slog.Int("http.status_code", result.Status),
+				slog.String("http.method", result.Method),
+				slog.String("http.uri", result.URI),
+				slog.Int64("http.response_size_bytes", result.Size),
+				slog.Int64("http.request_size_bytes", result.RequestSize),
+				slog.String("http.user_agent", result.UserAgent),
+				slog.String("network.client_ip", result.ClientIP),
+				slog.Float64("duration_ms", durationMS),
+			)
+		}),
 	)
 
 	var handler http.Handler
 	handler = h.Handler()
 	handler = spamFilter(handler)
-	handler = accessLogger(logger, handler)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%s", os.Getenv("PORT")),
@@ -118,29 +135,6 @@ func spamFilter(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
-	})
-}
-
-func accessLogger(logger *slog.Logger, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		m := httpsnoop.CaptureMetrics(next, w, r)
-		durationMS := m.Duration.Seconds() * 1000
-		lvl := slog.LevelInfo
-		if m.Code >= 500 {
-			lvl = slog.LevelError
-		} else if m.Code >= 400 {
-			lvl = slog.LevelWarn
-		}
-		logger.LogAttrs(r.Context(), lvl, fmt.Sprintf("%d %s %s %0.0fms", m.Code, r.Method, r.RequestURI, durationMS),
-			slog.Int("http.status_code", m.Code),
-			slog.String("http.method", r.Method),
-			slog.String("http.uri", r.RequestURI),
-			slog.Int64("http.response_size_bytes", m.Written),
-			slog.Int64("http.request_size_bytes", r.ContentLength),
-			slog.String("http.user_agent", r.Header.Get("User-Agent")),
-			slog.String("network.client_ip", r.Header.Get("Fly-Client-IP")),
-			slog.Float64("duration_ms", durationMS),
-		)
 	})
 }
 

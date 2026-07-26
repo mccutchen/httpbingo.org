@@ -1,4 +1,2 @@
-github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=
-github.com/felixge/httpsnoop v1.1.0/go.mod h1:Zqxgdd+1Rkcz8euOqdr7lqgCRJztwr5hp9vDSi5UZCE=
-github.com/mccutchen/go-httpbin/v2 v2.23.0 h1:7hmWWSeVGlIhYvLpa1cFssF6lsQp+UKoZ5i5FvidIqI=
-github.com/mccutchen/go-httpbin/v2 v2.23.0/go.mod h1:8hkN5rHf0QvJYEovZ8u/Dudtqyj6Z5gxQaW7scQfT0Y=
+github.com/mccutchen/go-httpbin/v2 v2.25.0 h1:YpPBoAIKYIyyPEwXZkEqBVIKwon02TK7CELwAkt1mLU=
+github.com/mccutchen/go-httpbin/v2 v2.25.0/go.mod h1:8hkN5rHf0QvJYEovZ8u/Dudtqyj6Z5gxQaW7scQfT0Y=
