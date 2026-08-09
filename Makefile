@@ -17,7 +17,7 @@ PORT ?= 8080
 
 # Build with compile-time otel instrumentation:
 # https://opentelemetry.io/docs/zero-code/go/compile-time/
-GO_BUILD ?= go run go.opentelemetry.io/otelc/tool/cmd/otelc@v1.0.1 go build
+GO_BUILD ?= go run go.opentelemetry.io/otelc/tool/cmd/otelc@v1.2.0 go build
 
 # Capture version at deploy time as ${branch}@${commit}
 DEPLOY_VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)@$(shell git describe --always --dirty)
@@ -27,7 +27,7 @@ DEPLOY_VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)@$(shell git describe 
 # =============================================================================
 build: $(DIST_PATH)/httpbingo
 
-$(DIST_PATH)/httpbingo: main.go go.mod go.sum
+$(DIST_PATH)/httpbingo: Makefile main.go go.mod go.sum
 	mkdir -p $(DIST_PATH)
 	CGO_ENABLED=0 $(GO_BUILD) -buildvcs=false -ldflags="-s -w" -o $(DIST_PATH)/httpbingo
 
